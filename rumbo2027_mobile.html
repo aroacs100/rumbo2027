@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>2027 · OPSE</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Newsreader:ital,wght@0,300;0,500;0,700;1,300;1,500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --ink:    #0e0c0b;
+  --paper:  #f5f0e8;
+  --cream:  #ede8dc;
+  --warm:   #e8e0d0;
+  --red:    #b91c1c;
+  --red-l:  #dc2626;
+  --blue:   #1d4ed8;
+  --amber:  #b45309;
+  --muted:  #78716c;
+  --faint:  #a8a29e;
+  --line:   #d6cfc2;
+  --serif:  'Newsreader', Georgia, serif;
+  --display:'Bebas Neue', Impact, sans-serif;
+  --mono:   'DM Mono', monospace;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-t: env(safe-area-inset-top, 0px);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--ink);
+}
+
+body {
+  font-family: var(--serif);
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* ── SHELL ── */
+.shell {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  height: 100vh;
+  background: var(--paper);
+  max-width: 430px;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── STATUS BAR SPACER ── */
+.status-space {
+  height: var(--safe-t);
+  background: var(--ink);
+  flex-shrink: 0;
+}
+
+/* ── MASTHEAD ── */
+.masthead {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 10px 18px 12px;
+  flex-shrink: 0;
+  border-bottom: 3px solid var(--red);
+}
+.masthead-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.masthead-title {
+  font-family: var(--display);
+  font-size: 34px;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  color: #fff;
+}
+.masthead-title span { color: var(--red-l); }
+.masthead-date {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--faint);
+  text-align: right;
+  line-height: 1.5;
+}
+.masthead-rule {
+  height: 1px;
+  background: #2a2a2a;
+  margin: 8px 0 6px;
+}
+.masthead-sub {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--faint);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* ── PAGES ── */
+.pages {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+.page {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  display: none;
+  flex-direction: column;
+}
+.page.active { display: flex; }
+
+/* ── SEARCH PAGE ── */
+.search-box-wrap {
+  padding: 14px 16px 10px;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+}
+.search-input-row {
+  display: flex;
+  align-items: center;
+  background: var(--cream);
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  padding: 0 14px;
+  gap: 10px;
+}
+.search-icon { font-size: 16px; flex-shrink: 0; opacity: 0.5; }
+.search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-family: var(--serif);
+  font-size: 16px;
+  color: var(--ink);
+  padding: 12px 0;
+  outline: none;
+  -webkit-appearance: none;
+}
+.search-input::placeholder { color: var(--faint); font-style: italic; }
+.search-clear {
+  font-size: 18px;
+  cursor: pointer;
+  opacity: 0.4;
+  padding: 4px;
+  display: none;
+}
+.search-results { flex: 1; overflow-y: auto; }
+.search-hint {
+  padding: 32px 20px;
+  text-align: center;
+}
+.search-hint-icon { font-size: 36px; margin-bottom: 10px; opacity: 0.25; }
+.search-hint-text { font-style: italic; color: var(--muted); font-size: 15px; }
+
+/* ── STATE LIST (shared by category pages) ── */
+.list-header {
+  padding: 14px 16px 8px;
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+  background: var(--paper);
+}
+.list-header-title {
+  font-family: var(--display);
+  font-size: 26px;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+.list-header-sub {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+
+.state-list { overflow-y: auto; flex: 1; }
+
+/* ── STATE ROW ── */
+.state-row {
+  display: flex;
+  align-items: center;
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  background: var(--paper);
+  transition: background 0.1s;
+  -webkit-user-select: none;
+  user-select: none;
+  gap: 14px;
+}
+.state-row:active { background: var(--cream); }
+
+.state-row-accent {
+  width: 4px;
+  height: 44px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.state-row-body { flex: 1; min-width: 0; }
+.state-row-name {
+  font-family: var(--display);
+  font-size: 20px;
+  letter-spacing: 0.03em;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.state-row-meta {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.state-row-right { text-align: right; flex-shrink: 0; }
+.state-row-pct {
+  font-family: var(--display);
+  font-size: 26px;
+  line-height: 1;
+}
+.state-row-party {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.state-row-chevron {
+  color: var(--faint);
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.competitive-dot {
+  display: inline-block;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--amber);
+  margin-left: 5px;
+  vertical-align: middle;
+  animation: blink 1.8s infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* ── BOTTOM TABS ── */
+.tab-bar {
+  display: flex;
+  background: var(--ink);
+  border-top: 2px solid var(--red);
+  flex-shrink: 0;
+  padding-bottom: var(--safe-b);
+}
+.tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 4px 8px;
+  cursor: pointer;
+  gap: 3px;
+  transition: background 0.15s;
+  -webkit-user-select: none;
+  user-select: none;
+  position: relative;
+}
+.tab:active { background: #1a1a1a; }
+.tab-icon { font-size: 18px; line-height: 1; }
+.tab-label {
+  font-family: var(--mono);
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #5a5a5a;
+  transition: color 0.15s;
+}
+.tab.active .tab-label { color: #fff; }
+.tab-indicator {
+  position: absolute;
+  top: 0; left: 20%; right: 20%;
+  height: 2px;
+  border-radius: 0 0 2px 2px;
+  background: transparent;
+  transition: background 0.15s;
+}
+.tab.active .tab-indicator { background: var(--red-l); }
+.tab-count {
+  position: absolute;
+  top: 7px; right: calc(50% - 18px);
+  background: var(--red);
+  color: #fff;
+  font-family: var(--mono);
+  font-size: 8px;
+  font-weight: 500;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ── BOTTOM SHEET ── */
+.sheet-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(14,12,11,0);
+  z-index: 50;
+  pointer-events: none;
+  transition: background 0.25s;
+}
+.sheet-overlay.open {
+  background: rgba(14,12,11,0.55);
+  pointer-events: all;
+}
+.sheet {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: var(--paper);
+  border-radius: 18px 18px 0 0;
+  border-top: 3px solid var(--red);
+  max-height: 92dvh;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.32,0.72,0,1);
+  z-index: 51;
+  overflow: hidden;
+}
+.sheet.open { transform: translateY(0); }
+
+.sheet-handle {
+  width: 36px; height: 4px;
+  background: var(--line);
+  border-radius: 2px;
+  margin: 10px auto 0;
+  flex-shrink: 0;
+}
+.sheet-header {
+  padding: 14px 18px 12px;
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+}
+.sheet-state-name {
+  font-family: var(--display);
+  font-size: 32px;
+  letter-spacing: 0.03em;
+  line-height: 1;
+}
+.sheet-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 7px;
+}
+.badge {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 500;
+  padding: 3px 9px;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.badge-morena { background: #fef2f2; color: var(--red); border: 1px solid #fecaca; }
+.badge-pan    { background: #eff6ff; color: var(--blue); border: 1px solid #bfdbfe; }
+.badge-comp   { background: #fffbeb; color: var(--amber); border: 1px solid #fde68a; }
+.badge-gov    { background: var(--cream); color: var(--muted); border: 1px solid var(--line); }
+.badge-warn   { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
+
+.sheet-body {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  flex: 1;
+  padding: 16px 18px;
+  padding-bottom: calc(16px + var(--safe-b));
+}
+
+/* Poll bars in sheet */
+.section-title {
+  font-family: var(--mono);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--muted);
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+}
+.poll-row { margin-bottom: 9px; }
+.poll-top {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  margin-bottom: 4px;
+  align-items: baseline;
+}
+.poll-party-name { font-weight: 500; }
+.poll-pct-val {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 500;
+}
+.poll-track {
+  height: 6px;
+  background: var(--warm);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.poll-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* Trend chart */
+.chart-wrap { height: 140px; margin: 14px 0 20px; }
+
+/* Candidate cards in sheet */
+.cand-section { margin-top: 20px; }
+.cand-card {
+  background: var(--cream);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  border-left: 3px solid var(--line);
+}
+.cand-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+.cand-name {
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1.3;
+  color: var(--ink);
+}
+.cand-role {
+  font-size: 11px;
+  color: var(--muted);
+  font-style: italic;
+  margin-top: 1px;
+}
+.party-chip {
+  font-family: var(--mono);
+  font-size: 8px;
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: 3px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.attr-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+}
+.attr-tag {
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--paper);
+  color: var(--muted);
+  border: 1px solid var(--line);
+}
+
+/* Empty search */
+.empty-results {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--muted);
+  font-style: italic;
+}
+</style>
+</head>
+<body>
+<script>
+const PC = {morena:"#b91c1c",pan:"#1d4ed8",pri:"#15803d",mc:"#c2410c",verde:"#16a34a",sombrero:"#6d28d9"};
+const ATTR = {
+  amlo:      {icon:"👤",label:"Cercano a AMLO"},
+  csp:       {icon:"👩‍💼",label:"Sheinbaum"},
+  alh:       {icon:"🏛️",label:"Adán López"},
+  alb:       {icon:"⚡",label:"López Beltrán"},
+  ventaja:   {icon:"📊",label:"Ventaja encuestas"},
+  delictivo: {icon:"⚠️",label:"Señalamiento"},
+  moneda:    {icon:"🔄",label:"Moneda de cambio"},
+  gobernador:{icon:"🏛",label:"Cercano al Gob."},
+};
+const STATES=[
+  {id:"GRO",name:"Guerrero",cat:"morena_strong",adv:"Morena +35",gov:"MORENA",
+   polls:{morena:50.8,pan:6.7,pri:13.8,mc:8.2},
+   trend:[{m:"Ago",r:50,b:5,g:11},{m:"Sep",r:48.3,b:4.8,g:8.9},{m:"Oct",r:49.8,b:5,g:7.9},{m:"Nov",r:49.1,b:4.4,g:7.3},{m:"Dic",r:49.9,b:5.4,g:7.7},{m:"Ene",r:50.8,b:6.7,g:13.8}],
+   cands:[{name:"Beatriz Mojica",role:"Senadora",party:"morena",attrs:["gobernador"]},{name:"Esthela Damián",role:"Consejera jurídica",party:"morena",attrs:["csp"]},{name:"Abelina López",role:"Alcaldesa Acapulco",party:"morena",attrs:[]},{name:"Félix Salgado",role:"Senador",party:"morena",attrs:["delictivo"]},{name:"Manuel Añorve",role:"Senador",party:"pri",attrs:[]}]},
+  {id:"NAY",name:"Nayarit",cat:"morena_strong",adv:"Morena +25",gov:"MORENA",
+   polls:{morena:40.8,pan:11.4,pri:9.5,mc:12.2},
+   trend:[{m:"Ago",r:56,b:10,g:7},{m:"Sep",r:42.6,b:11.7,g:10.2},{m:"Oct",r:41.6,b:12.9,g:9.7},{m:"Nov",r:45.6,b:12.2,g:8.7},{m:"Dic",r:39.9,b:9.9,g:8},{m:"Ene",r:40.8,b:11.4,g:9.5}],
+   cands:[{name:"Héctor Santana",role:"Alcalde Bahía de Banderas",party:"morena",attrs:["gobernador","delictivo"]},{name:"Geraldine Ponce",role:"Alcaldesa Tepic",party:"morena",attrs:["amlo"]},{name:"Jasmine Bugarín",role:"Senadora",party:"verde",attrs:[]},{name:"Ivideliza Reyes",role:"Senadora",party:"pan",attrs:[]},{name:"Ignacio Flores",role:"Coordinador MC",party:"mc",attrs:[]}]},
+  {id:"TLAX",name:"Tlaxcala",cat:"morena_strong",adv:"Morena +25",gov:"MORENA",
+   polls:{morena:39.9,pan:10.8,pri:13.8,mc:11.2},
+   trend:[{m:"Ago",r:42,b:7,g:11},{m:"Sep",r:39.8,b:9,g:13.5},{m:"Oct",r:39.8,b:10.8,g:13.6},{m:"Nov",r:39.7,b:10.1,g:14.7},{m:"Dic",r:40.4,b:9.9,g:12.8},{m:"Ene",r:39.9,b:10.8,g:13.8}],
+   cands:[{name:"Ana Lilia Rivera",role:"Senadora",party:"morena",attrs:["ventaja","csp"]},{name:"Alfonso Sánchez",role:"Alcalde de Tlaxcala",party:"morena",attrs:["gobernador"]},{name:"Josefina Rodríguez",role:"Sec. de Turismo",party:"morena",attrs:[]},{name:"Anabell Ávalos",role:"Senadora",party:"pri",attrs:[]},{name:"Adriana Dávila",role:"Ex candidata PAN",party:"pan",attrs:[]}]},
+  {id:"QROO",name:"Quintana Roo",cat:"morena_strong",adv:"Morena +25",gov:"MORENA",
+   polls:{morena:41.0,pan:15.3,pri:8.8,mc:9.8},
+   trend:[{m:"Ago",r:49,b:9,g:5},{m:"Sep",r:43.3,b:14.1,g:7.6},{m:"Oct",r:43.6,b:13.6,g:8.8},{m:"Nov",r:43.8,b:13.9,g:8.7},{m:"Dic",r:41.1,b:13.3,g:7.5},{m:"Ene",r:41.0,b:15.3,g:8.8}],
+   cands:[{name:"Gino Segura",role:"Senador",party:"morena",attrs:["ventaja","gobernador","moneda"]},{name:"Ana Paty Peralta",role:"Alcaldesa Benito Juárez",party:"morena",attrs:["alb"]},{name:"Rafael Marín",role:"Titular ANAM",party:"morena",attrs:["amlo"]},{name:"Mayuli Martínez",role:"Senadora",party:"pan",attrs:[]},{name:"Estefanía Mercado",role:"Alcaldesa Solidaridad",party:"morena",attrs:[]}]},
+  {id:"COL",name:"Colima",cat:"morena_strong",adv:"Morena +20",gov:"MORENA",
+   polls:{morena:38.6,pan:16.6,pri:14.9,mc:10.9},
+   trend:[{m:"Ago",r:40,b:16,g:13},{m:"Sep",r:36.2,b:15.1,g:14.6},{m:"Oct",r:36.5,b:14.4,g:13.6},{m:"Nov",r:35.2,b:11.7,g:14},{m:"Dic",r:35.3,b:14.6,g:14},{m:"Ene",r:38.6,b:16.6,g:14.9}],
+   cands:[{name:"Rosi Bayardo",role:"Alcaldesa Manzanillo",party:"morena",attrs:["ventaja","gobernador"]},{name:"Leoncio Morán",role:"Diputado Federal",party:"morena",attrs:[]},{name:"Mario Delgado",role:"SEP",party:"morena",attrs:[]},{name:"Riult Rivera",role:"Alcalde de Colima",party:"pan",attrs:[]},{name:"Mely Romero",role:"Senadora",party:"pri",attrs:[]}]},
+  {id:"SIN",name:"Sinaloa",cat:"morena_strong",adv:"Morena +20",gov:"MORENA",
+   polls:{morena:38.8,pan:14.6,pri:13.7,mc:7.0},
+   trend:[{m:"Ago",r:46,b:11,g:8},{m:"Sep",r:40.4,b:14.7,g:8.5},{m:"Oct",r:37.7,b:14.7,g:7.7},{m:"Nov",r:41.4,b:14.7,g:12.8},{m:"Dic",r:40.3,b:11.4,g:10.9},{m:"Ene",r:38.8,b:14.6,g:13.7}],
+   cands:[{name:"Imelda Castro",role:"Senadora",party:"morena",attrs:["ventaja","amlo"]},{name:"Juan de Dios Gámez",role:"Alcalde Culiacán",party:"morena",attrs:["gobernador"]},{name:"Gerardo Vargas",role:"Ex alcalde Ahome",party:"morena",attrs:[]},{name:"Mario Zamora",role:"Diputado federal",party:"pri",attrs:[]},{name:"Paloma Sánchez",role:"Senadora",party:"pri",attrs:[]}]},
+  {id:"SON",name:"Sonora",cat:"morena_strong",adv:"Morena +20",gov:"MORENA",
+   polls:{morena:40.1,pan:18.6,pri:12.3,mc:7.9},
+   trend:[{m:"Ago",r:52,b:16,g:9},{m:"Sep",r:43.2,b:16.4,g:7.2},{m:"Oct",r:42.3,b:18.3,g:9.5},{m:"Nov",r:41.8,b:15.3,g:9.8},{m:"Dic",r:40.3,b:17.1,g:11.2},{m:"Ene",r:40.1,b:18.6,g:12.3}],
+   cands:[{name:"Javier Lamarque",role:"Alcalde Cajeme",party:"morena",attrs:["amlo"]},{name:"Lorenia Valles",role:"Senadora",party:"morena",attrs:[]},{name:"Célida López",role:"Titular SAGARHPA",party:"morena",attrs:[]},{name:"Antonio Astiazarán",role:"Alcalde Hermosillo",party:"pan",attrs:[]},{name:"Lilly Téllez",role:"Senadora",party:"pan",attrs:[]}]},
+  {id:"BC",name:"Baja California",cat:"morena_strong",adv:"Morena +15",gov:"MORENA",
+   polls:{morena:38.3,pan:19.0,pri:7.9,mc:7.8},
+   trend:[{m:"Ago",r:48,b:19,g:5},{m:"Sep",r:39.1,b:15.1,g:9.2},{m:"Oct",r:36.4,b:16.8,g:10.1},{m:"Nov",r:40.9,b:15.8,g:8.9},{m:"Dic",r:36.8,b:18.9,g:8.5},{m:"Ene",r:38.3,b:19.0,g:7.9}],
+   cands:[{name:"Julieta Ramírez",role:"Senadora",party:"morena",attrs:["gobernador","amlo"]},{name:"Ismael Burgueño",role:"Alcalde Tijuana",party:"morena",attrs:["delictivo"]},{name:"Fernando Castro",role:"Diputado federal",party:"morena",attrs:[]},{name:"Montserrat Caballero",role:"Ex alcaldesa Tijuana",party:"morena",attrs:[]},{name:"Gina Cruz",role:"Exsenadora",party:"pan",attrs:[]}]},
+  {id:"CAMP",name:"Campeche",cat:"morena_strong",adv:"Morena +10",gov:"MORENA",
+   polls:{morena:39.5,pan:5.7,pri:9.2,mc:28.7},
+   trend:[{m:"Ago",r:42,b:5,g:10},{m:"Sep",r:41.6,b:5.3,g:6.9},{m:"Oct",r:39.3,b:6.5,g:7.2},{m:"Nov",r:41.9,b:4.3,g:7.4},{m:"Dic",r:40,b:5.8,g:8.8},{m:"Ene",r:39.5,b:5.7,g:9.2}],
+   cands:[{name:"Pablo Gutiérrez Lazarus",role:"Alcalde Cd. del Carmen",party:"morena",attrs:["ventaja"]},{name:"Liz Hernández",role:"Sec. de Gobierno",party:"morena",attrs:["gobernador"]},{name:"Rocío Abreu",role:"Diputada Federal",party:"morena",attrs:[]},{name:"Biby Rabelo",role:"Alcaldesa de Campeche",party:"mc",attrs:[]},{name:"Eliseo Fernández",role:"Empresario",party:"mc",attrs:["delictivo"]}]},
+  {id:"BCS",name:"Baja California Sur",cat:"morena_strong",adv:"Morena +10",gov:"MORENA",
+   polls:{morena:36.5,pan:26.3,pri:7.8,mc:8.5},
+   trend:[{m:"Sep",r:38.3,b:24.3,g:5.8},{m:"Oct",r:36.7,b:24.7,g:5.8},{m:"Nov",r:37.7,b:24.1,g:6.9},{m:"Dic",r:34.2,b:25.4,g:7.6},{m:"Ene",r:36.5,b:26.3,g:7.8}],
+   cands:[{name:"Milena Quiroga",role:"Alcaldesa La Paz",party:"morena",attrs:["ventaja"]},{name:"Christian Agúndez",role:"Alcalde Los Cabos",party:"morena",attrs:["delictivo","moneda"]},{name:"Homero Davis",role:"Senador",party:"morena",attrs:[]},{name:"Francisco Pelayo",role:"Diputado federal",party:"pan",attrs:[]},{name:"Susana Zatarain",role:"Senadora",party:"pan",attrs:[]}]},
+  {id:"AGS",name:"Aguascalientes",cat:"pan_advantage",adv:"PAN +15",gov:"PAN",
+   polls:{morena:28.8,pan:43.3,pri:6.2,mc:4.5},
+   trend:[{m:"Ago",r:33,b:46,g:5},{m:"Sep",r:30.6,b:43.8,g:5.7},{m:"Oct",r:29.5,b:44.8,g:4.7},{m:"Nov",r:29.1,b:42.8,g:5.4},{m:"Dic",r:28.3,b:43.3,g:6.1},{m:"Ene",r:28.8,b:43.3,g:6.2}],
+   cands:[{name:"Antonio Martín del Campo",role:"Senador",party:"pan",attrs:["gobernador","ventaja","delictivo"]},{name:"Leonardo Montañez",role:"Alcalde Aguascalientes",party:"pan",attrs:[]},{name:"Antonio Arámbula",role:"Sec. General de Gobierno",party:"pan",attrs:[]},{name:"Nora Ruvalcaba",role:"Senadora",party:"morena",attrs:[]},{name:"Arturo Ávila",role:"Diputado federal",party:"morena",attrs:["alh"]}]},
+  {id:"QRO",name:"Querétaro",cat:"pan_advantage",adv:"PAN +15",gov:"PAN",
+   polls:{morena:29.9,pan:45.5,pri:4.7,mc:4.4},
+   trend:[{m:"Ago",r:36,b:49,g:4},{m:"Sep",r:31.7,b:42.5,g:4.9},{m:"Oct",r:32.2,b:41.1,g:5.6},{m:"Nov",r:31.3,b:41.1,g:4.7},{m:"Dic",r:31.2,b:44,g:5},{m:"Ene",r:29.9,b:45.5,g:4.7}],
+   cands:[{name:"Felifer Macías",role:"Alcalde Querétaro",party:"pan",attrs:["gobernador"]},{name:"Luis Bernardo Nava",role:"Sec. Desarrollo Social",party:"pan",attrs:["gobernador"]},{name:"Santiago Nieto",role:"Director del IMPI",party:"morena",attrs:[]},{name:"Beatriz Robles",role:"Senadora",party:"morena",attrs:[]},{name:"Lupita Murguía",role:"Senadora",party:"pan",attrs:[]}]},
+  {id:"CHIH",name:"Chihuahua",cat:"competitive",adv:"Competido",gov:"PAN",
+   polls:{morena:37.0,pan:27.7,pri:9.9,mc:6.8},
+   trend:[{m:"Ago",r:51,b:28,g:8},{m:"Sep",r:41.8,b:24,g:8.7},{m:"Oct",r:40.1,b:27.3,g:8.4},{m:"Nov",r:42.9,b:25.4,g:8.3},{m:"Dic",r:38.1,b:27,g:7.8},{m:"Ene",r:37.0,b:27.7,g:9.9}],
+   cands:[{name:"Cruz Pérez",role:"Alcalde Cd. Juárez",party:"morena",attrs:["csp"]},{name:"Andrea Chávez",role:"Senadora",party:"morena",attrs:["ventaja","alh"]},{name:"Ariadna Montiel",role:"Sec. de Bienestar",party:"morena",attrs:[]},{name:"Marco Bonilla",role:"Alcalde de Chihuahua",party:"pan",attrs:[]},{name:"Daniela Álvarez",role:"Presidenta estatal PAN",party:"pan",attrs:[]}]},
+  {id:"MICH",name:"Michoacán",cat:"competitive",adv:"Competido",gov:"MORENA",
+   polls:{morena:34.8,pan:15.8,pri:10.2,mc:7.0},
+   trend:[{m:"Ago",r:47,b:20,g:7},{m:"Sep",r:38.8,b:21.2,g:7.9},{m:"Oct",r:40.7,b:18.8,g:10.3},{m:"Nov",r:36.7,b:15.7,g:9.3},{m:"Dic",r:35,b:13.8,g:5.4},{m:"Ene",r:34.8,b:15.8,g:10.2}],
+   cands:[{name:"Raúl Morón",role:"Senador",party:"morena",attrs:["csp","ventaja","delictivo"]},{name:"Carlos Torres",role:"Fiscal General",party:"morena",attrs:["gobernador"]},{name:"Fabiola Alanís",role:"Diputada local",party:"morena",attrs:["gobernador"]},{name:"Grecia Quiroz",role:"Alcaldesa Uruapan",party:"sombrero",attrs:[]},{name:"Marko Cortés",role:"Senador",party:"pan",attrs:[]}]},
+  {id:"NL",name:"Nuevo León",cat:"competitive",adv:"Competido",gov:"MC",
+   polls:{morena:29.5,pan:16.5,pri:15.1,mc:21.3},
+   trend:[{m:"Ago",r:36,b:16,g:13},{m:"Sep",r:29.7,b:15.1,g:15},{m:"Oct",r:28.8,b:16,g:15.7},{m:"Nov",r:27.5,b:15.8,g:15.9},{m:"Dic",r:27.7,b:16.7,g:16.5},{m:"Ene",r:29.5,b:16.5,g:15.1}],
+   cands:[{name:"Waldo Fernández",role:"Senador",party:"morena",attrs:["moneda"]},{name:"Tatiana Clouthier",role:"Titular IME",party:"morena",attrs:["amlo"]},{name:"Mariana Rodríguez",role:"Titular Amar NL",party:"mc",attrs:["gobernador"]},{name:"Luis Donaldo Colosio",role:"Senador",party:"mc",attrs:[]},{name:"Adrián de la Garza",role:"Alcalde Monterrey",party:"pri",attrs:["delictivo"]}]},
+  {id:"SLP",name:"San Luis Potosí",cat:"competitive",adv:"Competido",gov:"PVEM",
+   polls:{morena:32.6,pan:16.1,pri:9.1,verde:19.8},
+   trend:[{m:"Ago",r:42,b:16,g:6},{m:"Sep",r:30.8,b:15.1,g:6.1},{m:"Oct",r:32.1,b:16,g:7.6},{m:"Nov",r:32.4,b:20.1,g:8.1},{m:"Dic",r:31.3,b:15.7,g:7.7},{m:"Ene",r:32.6,b:16.1,g:9.1}],
+   cands:[{name:"Ruth González",role:"Senadora",party:"verde",attrs:["gobernador","delictivo"]},{name:"Rosa Icela Rodríguez",role:"SEGOB",party:"morena",attrs:["amlo"]},{name:"Gerardo Sánchez",role:"Empresario",party:"morena",attrs:["amlo","alb","delictivo"]},{name:"Gilberto Hernández",role:"Senador",party:"verde",attrs:[]},{name:"Enrique Galindo",role:"Alcalde de SLP",party:"pan",attrs:[]}]},
+  {id:"ZAC",name:"Zacatecas",cat:"competitive",adv:"Competido",gov:"MORENA",
+   polls:{morena:34.6,pan:15.1,pri:17.5,mc:12.1},
+   trend:[{m:"Ago",r:30,b:14,g:17},{m:"Sep",r:35.6,b:15,g:15},{m:"Oct",r:33.4,b:14.8,g:15.4},{m:"Nov",r:35,b:15.4,g:16.1},{m:"Dic",r:34,b:15.5,g:16.3},{m:"Ene",r:34.6,b:15.1,g:17.5}],
+   cands:[{name:"Ulises Mejía",role:"Diputado federal",party:"morena",attrs:["ventaja","csp"]},{name:"Vero Díaz",role:"Senadora",party:"morena",attrs:["gobernador"]},{name:"Saúl Monreal",role:"Senador",party:"morena",attrs:["delictivo"]},{name:"Adolfo 'Fito' Bonilla",role:"Ex sec. Economía",party:"pri",attrs:[]},{name:"Jorge Máynez",role:"Dirigente MC",party:"mc",attrs:[]}]},
+];
+</script>
+
+<div class="shell">
+  <div class="status-space"></div>
+
+  <!-- MASTHEAD -->
+  <header class="masthead">
+    <div class="masthead-top">
+      <div class="masthead-title">RUMBO <span>2027</span></div>
+      <div class="masthead-date">
+        OPSE · Feb 2026<br>
+        17 entidades
+      </div>
+    </div>
+    <div class="masthead-rule"></div>
+    <div class="masthead-sub">Inteligencia Electoral · México</div>
+  </header>
+
+  <!-- PAGES -->
+  <div class="pages">
+
+    <!-- BUSCAR -->
+    <div class="page active" id="page-search">
+      <div class="search-box-wrap">
+        <div class="search-input-row">
+          <span class="search-icon">🔍</span>
+          <input class="search-input" type="search" placeholder="Estado o aspirante…" id="search-input" autocomplete="off" autocorrect="off" spellcheck="false">
+          <span class="search-clear" id="search-clear" onclick="clearSearch()">✕</span>
+        </div>
+      </div>
+      <div class="search-results" id="search-results">
+        <div class="search-hint">
+          <div class="search-hint-icon">🗺️</div>
+          <div class="search-hint-text">Escribe el nombre de un estado<br>o un aspirante</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MORENA -->
+    <div class="page" id="page-morena">
+      <div class="list-header">
+        <div class="list-header-title" style="color:var(--red)">● Morena</div>
+        <div class="list-header-sub">10 estados con ventaja clara</div>
+      </div>
+      <div class="state-list" id="list-morena"></div>
+    </div>
+
+    <!-- PAN + COMPETIDOS -->
+    <div class="page" id="page-oposicion">
+      <div class="list-header">
+        <div class="list-header-title">Resto</div>
+        <div class="list-header-sub">2 PAN · 5 competidos</div>
+      </div>
+      <div class="state-list" id="list-oposicion"></div>
+    </div>
+
+  </div><!-- /pages -->
+
+  <!-- BOTTOM TABS -->
+  <nav class="tab-bar">
+    <div class="tab active" id="tab-search" onclick="switchTab('search')">
+      <div class="tab-indicator"></div>
+      <div class="tab-icon">🔍</div>
+      <div class="tab-label">Buscar</div>
+    </div>
+    <div class="tab" id="tab-morena" onclick="switchTab('morena')">
+      <div class="tab-indicator"></div>
+      <div class="tab-icon">🔴</div>
+      <div class="tab-label">Morena</div>
+      <div class="tab-count">10</div>
+    </div>
+    <div class="tab" id="tab-oposicion" onclick="switchTab('oposicion')">
+      <div class="tab-indicator"></div>
+      <div class="tab-icon">⚡</div>
+      <div class="tab-label">PAN/Comp.</div>
+      <div class="tab-count">7</div>
+    </div>
+  </nav>
+
+  <!-- BOTTOM SHEET -->
+  <div class="sheet-overlay" id="sheet-overlay" onclick="closeSheet()"></div>
+  <div class="sheet" id="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header" id="sheet-header"></div>
+    <div class="sheet-body" id="sheet-body"></div>
+  </div>
+</div>
+
+<script>
+// ── Tab navigation ────────────────────────────
+let activeTab = 'search';
+function switchTab(tab) {
+  ['search','morena','oposicion'].forEach(t=>{
+    document.getElementById('tab-'+t).classList.toggle('active', t===tab);
+    document.getElementById('page-'+t).classList.toggle('active', t===tab);
+  });
+  activeTab = tab;
+}
+
+// ── Leader helper ─────────────────────────────
+function leader(s) {
+  return Object.entries(s.polls).sort((a,b)=>b[1]-a[1])[0];
+}
+
+// ── Render a state row ────────────────────────
+function stateRowHTML(s) {
+  const [lp, lv] = leader(s);
+  const col = PC[lp]||'#888';
+  const isComp = s.cat==='competitive';
+  const isPan  = s.cat==='pan_advantage';
+  const accentCol = isPan ? 'var(--blue)' : isComp ? 'var(--amber)' : 'var(--red)';
+  return `
+    <div class="state-row" onclick="openSheet('${s.id}')">
+      <div class="state-row-accent" style="background:${accentCol}"></div>
+      <div class="state-row-body">
+        <div class="state-row-name">${s.name}${isComp?'<span class="competitive-dot"></span>':''}</div>
+        <div class="state-row-meta">Gob: ${s.gov} · ${s.adv}</div>
+      </div>
+      <div class="state-row-right">
+        <div class="state-row-pct" style="color:${col}">${lv.toFixed(0)}<span style="font-size:14px;color:var(--faint)">%</span></div>
+        <div class="state-row-party" style="color:${col}">${lp}</div>
+      </div>
+      <div class="state-row-chevron">›</div>
+    </div>`;
+}
+
+// ── Build lists ───────────────────────────────
+function buildLists() {
+  document.getElementById('list-morena').innerHTML =
+    STATES.filter(s=>s.cat==='morena_strong').map(stateRowHTML).join('');
+  document.getElementById('list-oposicion').innerHTML =
+    [...STATES.filter(s=>s.cat==='pan_advantage'), ...STATES.filter(s=>s.cat==='competitive')]
+    .map(stateRowHTML).join('');
+}
+
+// ── Search ────────────────────────────────────
+const input = document.getElementById('search-input');
+const clear = document.getElementById('search-clear');
+const results = document.getElementById('search-results');
+
+input.addEventListener('input', ()=>{
+  const q = input.value.trim().toLowerCase();
+  clear.style.display = q ? 'block' : 'none';
+  if (!q) {
+    results.innerHTML = `<div class="search-hint"><div class="search-hint-icon">🗺️</div><div class="search-hint-text">Escribe el nombre de un estado<br>o un aspirante</div></div>`;
+    return;
+  }
+  const matched = STATES.filter(s=>{
+    if (s.name.toLowerCase().includes(q)) return true;
+    if (s.id.toLowerCase().includes(q)) return true;
+    return s.cands.some(c=>c.name.toLowerCase().includes(q));
+  });
+  if (!matched.length) {
+    results.innerHTML = `<div class="empty-results">Sin resultados para «${input.value}»</div>`;
+    return;
+  }
+  results.innerHTML = matched.map(stateRowHTML).join('');
+});
+
+function clearSearch() {
+  input.value = '';
+  clear.style.display = 'none';
+  results.innerHTML = `<div class="search-hint"><div class="search-hint-icon">🗺️</div><div class="search-hint-text">Escribe el nombre de un estado<br>o un aspirante</div></div>`;
+  input.focus();
+}
+
+// ── Bottom Sheet ──────────────────────────────
+let trendChart = null;
+
+function openSheet(id) {
+  const s = STATES.find(x=>x.id===id);
+  if (!s) return;
+  renderSheet(s);
+  document.getElementById('sheet-overlay').classList.add('open');
+  document.getElementById('sheet').classList.add('open');
+}
+function closeSheet() {
+  document.getElementById('sheet-overlay').classList.remove('open');
+  document.getElementById('sheet').classList.remove('open');
+  if (trendChart) { trendChart.destroy(); trendChart=null; }
+}
+
+function renderSheet(s) {
+  const [lp] = leader(s);
+  const isComp = s.cat==='competitive';
+  const isPan  = s.cat==='pan_advantage';
+  const badgeCls = isPan?'badge-pan':isComp?'badge-comp':'badge-morena';
+
+  // header
+  document.getElementById('sheet-header').innerHTML = `
+    <div class="sheet-state-name">${s.name}</div>
+    <div class="sheet-badges">
+      <span class="badge ${badgeCls}">${s.adv}</span>
+      <span class="badge badge-gov">Gob: ${s.gov}</span>
+      ${isComp?'<span class="badge badge-warn">⚡ Elección cerrada</span>':''}
+    </div>`;
+
+  // poll bars
+  const partyLabels = {morena:'Morena',pan:'PAN',pri:'PRI',mc:'MC',verde:'Verde'};
+  const pollsHTML = Object.entries(s.polls)
+    .filter(([,v])=>v>0)
+    .sort((a,b)=>b[1]-a[1])
+    .map(([p,v])=>`
+      <div class="poll-row">
+        <div class="poll-top">
+          <span class="poll-party-name" style="color:${PC[p]||'#888'}">${partyLabels[p]||p}</span>
+          <span class="poll-pct-val" style="color:${PC[p]||'#888'}">${v.toFixed(1)}%</span>
+        </div>
+        <div class="poll-track"><div class="poll-fill" style="width:${v}%;background:${PC[p]||'#888'}"></div></div>
+      </div>`).join('');
+
+  // candidates
+  const candsHTML = s.cands.map(c=>{
+    const pc = PC[c.party]||'#888';
+    const attrs = c.attrs.map(a=>`<span class="attr-tag">${ATTR[a]?.icon||''} ${ATTR[a]?.label||a}</span>`).join('');
+    return `
+      <div class="cand-card" style="border-left-color:${pc}">
+        <div class="cand-top">
+          <div>
+            <div class="cand-name">${c.name}</div>
+            <div class="cand-role">${c.role}</div>
+          </div>
+          <span class="party-chip" style="background:${pc}18;color:${pc};border:1px solid ${pc}33">${c.party.toUpperCase()}</span>
+        </div>
+        ${attrs?`<div class="attr-row">${attrs}</div>`:''}
+      </div>`;
+  }).join('');
+
+  document.getElementById('sheet-body').innerHTML = `
+    <div class="section-title">Promedio encuestas · Feb 2026</div>
+    ${pollsHTML}
+    <div class="section-title" style="margin-top:18px">Tendencia · Ago–Ene</div>
+    <div class="chart-wrap"><canvas id="sheet-chart"></canvas></div>
+    <div class="section-title cand-section" style="margin-top:4px">Principales aspirantes</div>
+    ${candsHTML}
+  `;
+
+  // draw trend chart after DOM update
+  requestAnimationFrame(()=>{
+    if (trendChart) trendChart.destroy();
+    const ctx = document.getElementById('sheet-chart');
+    if (!ctx) return;
+    trendChart = new Chart(ctx, {
+      type:'line',
+      data:{
+        labels: s.trend.map(t=>t.m),
+        datasets:[
+          {label:'Morena',data:s.trend.map(t=>t.r),borderColor:'#b91c1c',backgroundColor:'rgba(185,28,28,0.06)',tension:0.35,pointRadius:2,borderWidth:2.5},
+          {label:'PAN',   data:s.trend.map(t=>t.b),borderColor:'#1d4ed8',backgroundColor:'rgba(29,78,216,0.06)',tension:0.35,pointRadius:2,borderWidth:2.5},
+          {label:'PRI',   data:s.trend.map(t=>t.g),borderColor:'#15803d',backgroundColor:'rgba(21,128,61,0.06)', tension:0.35,pointRadius:2,borderWidth:2},
+        ]
+      },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins:{
+          legend:{labels:{color:'#78716c',font:{family:'DM Mono, monospace',size:10},boxWidth:12,padding:10}}
+        },
+        scales:{
+          x:{ticks:{color:'#a8a29e',font:{size:9}},grid:{color:'#e8e0d0'}},
+          y:{ticks:{color:'#a8a29e',font:{size:9}},grid:{color:'#e8e0d0'},min:0,max:60}
+        }
+      }
+    });
+  });
+}
+
+// ── Swipe down to close sheet ─────────────────
+let touchStartY = 0;
+const sheet = document.getElementById('sheet');
+sheet.addEventListener('touchstart', e=>{ touchStartY = e.touches[0].clientY; }, {passive:true});
+sheet.addEventListener('touchmove', e=>{
+  const dy = e.touches[0].clientY - touchStartY;
+  if (dy > 0) sheet.style.transform = `translateY(${dy}px)`;
+}, {passive:true});
+sheet.addEventListener('touchend', e=>{
+  const dy = e.changedTouches[0].clientY - touchStartY;
+  sheet.style.transform = '';
+  if (dy > 80) closeSheet();
+});
+
+// ── Init ──────────────────────────────────────
+buildLists();
+</script>
+</body>
+</html>
