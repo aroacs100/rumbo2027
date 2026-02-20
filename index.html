@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rumbo a 2027 · OPSE</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Newsreader:ital,wght@0,300;0,500;0,700;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink:   #0e0c0b;
+    --red:   #b91c1c;
+    --red-l: #dc2626;
+    --paper: #f5f0e8;
+    --muted: #78716c;
+    --line:  #2a2a2a;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'Newsreader', Georgia, serif;
+    min-height: 100dvh;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Background texture */
+  body::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 39px,
+        #1a1a1a 39px,
+        #1a1a1a 40px
+      );
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  /* Red accent top bar */
+  body::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: var(--red);
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    max-width: 480px;
+    width: 100%;
+    animation: fadeUp 0.4s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(16px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+
+  .eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--red-l);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  .eyebrow::before, .eyebrow::after {
+    content: '';
+    display: block;
+    height: 1px;
+    width: 40px;
+    background: #333;
+  }
+
+  .title {
+    font-family: 'Bebas Neue', Impact, sans-serif;
+    font-size: clamp(64px, 18vw, 96px);
+    letter-spacing: 0.04em;
+    line-height: 0.9;
+    color: #fff;
+  }
+  .title span { color: var(--red-l); }
+
+  .subtitle {
+    font-size: 16px;
+    font-style: italic;
+    color: #9e9e9e;
+    margin-top: 12px;
+    font-weight: 300;
+  }
+
+  .divider {
+    width: 40px;
+    height: 2px;
+    background: var(--red);
+    margin: 28px auto;
+  }
+
+  /* Countdown */
+  .redirect-msg {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: #555;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 28px;
+    min-height: 18px;
+  }
+  .redirect-msg span {
+    color: var(--red-l);
+    font-weight: 500;
+  }
+
+  /* Cards */
+  .cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .card {
+    display: block;
+    background: #131313;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 20px 16px;
+    text-decoration: none;
+    color: var(--paper);
+    transition: all 0.18s;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--red);
+    transform: scaleX(0);
+    transition: transform 0.2s ease;
+  }
+  .card:hover { border-color: #444; background: #1a1a1a; transform: translateY(-2px); }
+  .card:hover::before { transform: scaleX(1); }
+  .card:active { transform: translateY(0); }
+
+  .card.highlighted {
+    border-color: var(--red);
+    background: #1a0505;
+  }
+  .card.highlighted::before { transform: scaleX(1); }
+
+  .card-icon { font-size: 28px; margin-bottom: 10px; line-height: 1; }
+  .card-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 0.06em;
+    margin-bottom: 5px;
+  }
+  .card-desc {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    line-height: 1.5;
+  }
+  .card-badge {
+    position: absolute;
+    top: 10px; right: 10px;
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    background: var(--red);
+    color: #fff;
+    padding: 2px 6px;
+    border-radius: 3px;
+    letter-spacing: 0.05em;
+  }
+
+  .footer {
+    margin-top: 32px;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: #333;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">OPSE · Inteligencia Electoral</div>
+
+  <div class="title">RUMBO<br>A <span>2027</span></div>
+  <div class="subtitle">Preferencias electorales · 17 entidades · Feb 2026</div>
+
+  <div class="divider"></div>
+
+  <div class="redirect-msg" id="redirect-msg">Detectando dispositivo…</div>
+
+  <div class="cards">
+    <a class="card" id="card-desktop" href="rumbo2027.html">
+      <div class="card-icon">🖥️</div>
+      <div class="card-title">Escritorio</div>
+      <div class="card-desc">Dashboard completo<br>con gráficas y tablas</div>
+    </a>
+    <a class="card" id="card-mobile" href="rumbo2027_mobile.html">
+      <div class="card-icon">📱</div>
+      <div class="card-title">Móvil</div>
+      <div class="card-desc">Consulta rápida<br>optimizada para iPhone</div>
+    </a>
+  </div>
+
+  <div class="footer">Actualización: Febrero 2026</div>
+</div>
+
+<script>
+  const isMobile = /iPhone|iPad|iPod|Android|Mobile/i.test(navigator.userAgent)
+                || window.innerWidth < 768;
+
+  const target   = isMobile ? 'rumbo2027_mobile.html' : 'rumbo2027.html';
+  const cardId   = isMobile ? 'card-mobile' : 'card-desktop';
+  const label    = isMobile ? 'móvil' : 'escritorio';
+
+  // Highlight detected card
+  document.getElementById(cardId).classList.add('highlighted');
+  document.getElementById(cardId).innerHTML +=
+    '<div class="card-badge">Tu dispositivo</div>';
+
+  // Countdown
+  let secs = 3;
+  const msg = document.getElementById('redirect-msg');
+
+  function updateMsg() {
+    msg.innerHTML = `Redirigiendo a versión <span>${label}</span> en ${secs}s…`;
+  }
+  updateMsg();
+
+  const interval = setInterval(() => {
+    secs--;
+    if (secs <= 0) {
+      clearInterval(interval);
+      msg.innerHTML = `Cargando versión <span>${label}</span>…`;
+      window.location.href = target;
+    } else {
+      updateMsg();
+    }
+  }, 1000);
+
+  // If user clicks manually, cancel countdown
+  document.querySelectorAll('.card').forEach(card => {
+    card.addEventListener('click', () => clearInterval(interval));
+  });
+</script>
+</body>
+</html>
